@@ -20,6 +20,9 @@ class Neuron(Value):
         
         self._backward = None
         
+    def __repr__(self) -> str:
+        return f"Value(data={self.data})"
+        
     def __neg__(self):
         return self * -1
         
