@@ -1,5 +1,6 @@
 import random
 
+# from src.network.value_original import Value as Neuron
 from src.network.neuron import Neuron
 
 
@@ -8,7 +9,7 @@ class MlpNeuron:
     def __init__(self, num_inputs: int) -> None:
         """
         self.w are the wights of the network
-        self.b i sth ebiad of the network
+        self.b is the bias of the network
         """
         self.w = [Neuron(random.uniform(-1,1)) for _ in range(num_inputs)]
         self.b = Neuron(random.uniform(-1,1))
@@ -24,6 +25,9 @@ class MlpNeuron:
         activated_value = value.tanh()
         return activated_value
     
+    def parameters(self):
+        return self.w + [self.b]
+    
     
 class Layer:
     """
@@ -36,6 +40,9 @@ class Layer:
     def __call__(self, x):
         outputs = [n(x) for n in self.neurons]
         return outputs[0] if len(outputs) == 1 else outputs
+    
+    def parameters(self):
+        return [p for neuron in self.neurons for p in neuron.parameters()]
     
 class Mlp:
     """
@@ -59,5 +66,36 @@ class Mlp:
         for layer in self.layers:
             x = layer(x)
         return x
+    
+    def parameters(self):
+        return [p for layer in self.layers for p in layer.parameters()]
+    
+    
+def train(network, inputs, ground_truth, num_iterations, learning_rate):
+    for k in range(num_iterations):
+        # forward pass
+        predictions = [network(x) for x in inputs]
+        loss = sum((yout - ygt)**2 for ygt, yout in zip(ground_truth, predictions))
+        
+        #backward pass
+        for p in network.parameters():
+            p.grad = 0.0
+        loss.backward()
+        
+        # gradient Descent or updating the data in the hidden layers based on the gradient
+        for p in network.parameters():
+            p.data += learning_rate * p.grad
+        
+        print(k, loss.data)
+    return predictions
+        
+if __name__ == '__main__':
+    network = Mlp(3, [4,4,1])
+    xs = [[2.0, 3.0, -1.0], [3.0, -1.0, 0.5], [0.5, 1.0, 1.0], [1.0, 1.0, -1.0],]
+    ys = [1.0, -1.0, -1.0, 1.0] # desired targets
+    
+    preds = train(network=network, inputs=xs, ground_truth=ys, num_iterations=50, learning_rate=-0.1)
+    print(preds)
+    
         
     

@@ -18,7 +18,7 @@ class Neuron(Value):
         _children = kwargs.get('_prev', ()) if len(_children) < 1 else _children
         super().__init__(data, run, _children, _op, label)
         
-        self._backward = None
+        self._backward = lambda: None
         
     def __repr__(self) -> str:
         return f"Value(data={self.data})"
@@ -83,7 +83,12 @@ class Neuron(Value):
         return out
         
     @staticmethod
-    def _build_topoligical_graph(node: Value, topo: list = [], visited: set = set()) -> list:
+    def _build_topoligical_graph(node: Value, topo = None, visited = None) -> list:
+        if topo is None:
+            topo = []
+        if visited is None:
+            visited = set()
+
         if node not in visited:
             visited.add(node)
             for child in node._prev:
@@ -111,10 +116,10 @@ class Neuron(Value):
         return out
         
     def backward(self):
+        topo = []
         topo = Neuron._build_topoligical_graph(self)
         self.grad = 1.0
         for node in reversed(topo):
             if node._backward:
                 node._backward()
-    
     
